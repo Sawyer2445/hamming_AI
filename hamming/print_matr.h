@@ -1,3 +1,6 @@
+/*
+ * Печатает матрицу заданного размера
+ */
 #ifndef PRINT_MATR
 #define PRINT_MATR
 

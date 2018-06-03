@@ -5,6 +5,8 @@
 #include <iostream>
 #include "print_matr.h"
 #include "norm.h"
+#include <iterator>
+#include <fstream>
 
 namespace hamming
 {
@@ -29,14 +31,21 @@ namespace hamming
 		double eps;		// значение веса ингибиторного синапса (0;1/K)
 		int K;
 		int M;
+		int sh;
+		
 	
 	public:
-		int work();
+		void work();
 
 
 		network();
 		//активационная функция
 		double f(double s) const;
+
+		//чтение образа из файла 
+		std::string read_view(std::string path);
+
+		void print_view(const std::string&, int) const;
 	};
 
 	

@@ -1,14 +1,21 @@
 #include "hamming_network.h"
 #include <algorithm>
+#include <string>
 
-int hamming::network::work()
+void hamming::network::work()
 {
-	std::string view = { "111111111" };
+	std::string path;
+	std::cout << "Укажите путь образу для распознования: ";
+	std::cin >> path;
+
+
+	std::string view = read_view(path);
+	print_view(view, sh);
 	double_vector oldY1 = new double[K];
 	const int_vector xx = new int[this->M];
 	for (int i = 0; i < M; i++)
 	{
-		xx[i] = view[i] == '1' ? 1 : -1;
+		xx[i] = view[i] == '#' ? 1 : -1;
 	}
 
 	for (auto i = 0; i < K; i++)
@@ -20,9 +27,7 @@ int hamming::network::work()
 		}
 		s1[i] = sum + this->T;
 		s2[i] = s1[i];	//делается один раз
-		std::cout << s1[i] << ' ';
 	}
-	std::cout << '\n';	//8 2 3
 
 	//выход нейронов первого слоя 
 	for (auto i = 0; i < K; i++)
@@ -30,9 +35,7 @@ int hamming::network::work()
 		y1[i] = f(s1[i]);
 
 		y2[i] = y1[i];	//делается один раз
-		std::cout << y2[i] << ' '; 
 	}
-	std::cout << '\n'; //4.5 2 3
 
 	do
 	{
@@ -61,26 +64,25 @@ int hamming::network::work()
 			indx = i;
 		}
 	}
-	std::cout << indx + 1;
+	std::cout << "Образ соответствует классу: " <<  indx + 1 << std::endl;
 	
-
-
-	return  -1;
-
 }
 
 hamming::network::network()
 {
 	
 	setlocale(LC_ALL, "RUS");
+	std::cout << "Введите размерность картинок\n";
+	int x, y;
+	std::cout << "Ширина: "; std::cin >> x;
+	std::cout << "Высота: "; std::cin >> y;
 	std::cout << "Введите количество образов: ";
 	int k;
 	std::cin >> k;
-	std::cout << "Введите размерность картинок\n";
-	int x, y;
-	std::cout << "X: "; std::cin >> x;
-	std::cout << "Y: "; std::cin >> y;
 
+	
+
+	this->sh = x;
 	this->K = k;
 	this->M = x * y;
 	this->T = M / 2.0;
@@ -90,12 +92,18 @@ hamming::network::network()
 	y1 = new double[K];
 	y2 = new double[K];
 
-	//чтение потом 
+	//чтение образов и сохранение их в массив строк 
+	std::vector<std::string> views;
 
-	std::string view1 = "101010101";
-	std::string view2 = "010111010";
-	std::string view3 = "111101111";
-
+	for (auto i = 0; i < k; i++)
+	{
+		std::string path;
+		std::cout << "Путь к эталонному образу " << i + 1<< ": ";
+		std::cin >> path;
+		views.push_back(read_view(path));
+		std::cout << "Класс № " << i + 1;
+		print_view(views[i], x);
+	}
 	x_ = new int *[K];
 	for (int i = 0; i < K; i++)
 	{
@@ -103,18 +111,12 @@ hamming::network::network()
 
 	}
 
-	//сделать лучше 
-	for (int j = 0; j < M; j++)
+	for (auto i = 0; i < K; i++)
 	{
-		x_[0][j] = view1[j] == '1' ? 1 : -1;
-	}
-	for (int j = 0; j < M; j++)
-	{
-		x_[1][j] = view2[j] == '1' ? 1 : -1;
-	}
-	for (int j = 0; j < M; j++)
-	{
-		x_[2][j] = view3[j] == '1' ? 1 : -1;
+		for (auto j = 0; j < M; j++)
+		{
+			x_[i][j] = views[i][j] == '#' ? 1 : -1;
+		}
 	}
 
 	w_ = new double *[K];
@@ -138,10 +140,6 @@ hamming::network::network()
 	}
 
 	eMax_ = 0.1;
-	print_matrix(K, M, x_);
-	print_matrix(K, M, w_);
-	print_matrix(K, K, eps_);
-
 	
 }
 
@@ -154,4 +152,29 @@ double hamming::network::f(double s) const
 	if (s >= T)
 		return T;
 	return -1;
+}
+
+std::string hamming::network::read_view(const std::string path)
+{
+	std::ifstream file(path);
+	std::string view = "";
+	while (file)
+	{
+		std::string str;
+		std::getline(file, str);
+		view += str;
+	}
+	file.close();
+	return view;
+}
+
+void hamming::network::print_view(const std::string& view, int x) const
+{
+	for(auto i = 0; i < view.size(); i++)
+	{
+		if (!(i % x))
+			std::cout << '\n';
+		std::cout << view[i];
+	}
+	std::cout << "\n________________\n\n";
 }
